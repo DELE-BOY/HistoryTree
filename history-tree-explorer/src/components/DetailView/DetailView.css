@@ -1,0 +1,17 @@
+.event-description {
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-size: 16px;
+  }
+  
+  .event-significance {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #1E3F66;
+  }
+  
+  .event-significance h4 {
+    margin-top: 0;
+    color: #1E3F66;
+  }

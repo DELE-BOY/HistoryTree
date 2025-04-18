@@ -1,0 +1,29 @@
+.tree-structure {
+    margin-top: 30px;
+  }
+  
+  .tree-root {
+    padding-left: 0;
+  }
+  
+  /* Create vertical lines for tree structure */
+  .tree-structure ul {
+    position: relative;
+  }
+  
+  .tree-structure ul li {
+    position: relative;
+  }
+  
+  .tree-structure ul li:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -20px;
+    border-left: 1px solid #ccc;
+    height: 100%;
+  }
+  
+  .tree-structure ul li:last-child:before {
+    height: 20px;
+  }
