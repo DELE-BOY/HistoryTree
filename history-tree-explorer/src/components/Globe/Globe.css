@@ -1,18 +1,55 @@
 .globe-container {
-    height: 100vh;
-    width: 100%;
-    position: relative;
-    background-color: #000;
-  }
-  
-  .instructions {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    color: white;
-    font-size: 16px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
-  }
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+}
+
+.instructions {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: white;
+  font-size: 16px;
+  font-weight: 300;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.country-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  text-shadow: 0px 0px 3px #000;
+  background-color: rgba(0, 40, 80, 0.7);
+  padding: 4px 8px;
+  border-radius: 4px;
+  transform: scale(1);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  width: 60px;
+}
+
+.country-marker:hover {
+  transform: scale(1.1);
+  background-color: rgba(0, 60, 120, 0.9);
+}
+
+.country-code {
+  font-weight: bold;
+  font-size: 18px;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.country-name {
+  color: white;
+  font-weight: 300;
+  font-size: 10px;
+  white-space: nowrap;
+}
