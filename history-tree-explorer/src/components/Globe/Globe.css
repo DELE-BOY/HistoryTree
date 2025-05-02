@@ -2,7 +2,7 @@
   height: 100vh;
   width: 100%;
   position: relative;
-  background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+  background: radial-gradient(ellipse at bottom, #1165c6 0%, #090A0F 100%);
 }
 
 .instructions {

@@ -1,106 +1,92 @@
-import React, { useRef, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import './Globe.css';
 
-// Countries data
+// Utility: convert 2-letter country code to emoji flag
+function countryCodeToEmoji(code) {
+  return code
+    .toUpperCase()
+    .replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
+}
+
+// Only African countries data
 const countries = [
-  { name: 'Nigeria',            coordinates: [  9.082,   8.6753], code: 'NG' },
-  { name: 'United States',      coordinates: [-95.7129, 37.0902], code: 'US' },
-  { name: 'India',              coordinates: [ 78.9629, 20.5937], code: 'IN' },
-  { name: 'Brazil',             coordinates: [-51.9253,-14.2350], code: 'BR' },
-  { name: 'China',              coordinates: [104.1954, 35.8617], code: 'CN' },
-  { name: 'Afghanistan',        coordinates: [ 67.70995, 33.93911], code: 'AF' },
-  { name: 'Algeria',            coordinates: [  1.65963, 28.03389], code: 'DZ' },
-  { name: 'Argentina',          coordinates: [-63.61667,-38.41610], code: 'AR' },
-  { name: 'Australia',          coordinates: [133.77514,-25.27440], code: 'AU' },
-  { name: 'Austria',            coordinates: [ 14.55007, 47.51623], code: 'AT' },
-  { name: 'Bangladesh',         coordinates: [ 90.35633, 23.68499], code: 'BD' },
-  { name: 'Belgium',            coordinates: [  4.46994, 50.50389], code: 'BE' },
-  { name: 'Bolivia',            coordinates: [-63.58865,-16.29015], code: 'BO' },
-  { name: 'Botswana',           coordinates: [ 24.68487,-22.32847], code: 'BW' },
-  { name: 'Bulgaria',           coordinates: [ 25.48583, 42.73388], code: 'BG' },
-  { name: 'Cambodia',           coordinates: [104.99096, 12.56568], code: 'KH' },
-  { name: 'Cameroon',           coordinates: [ 12.35472,  7.36972], code: 'CM' },
-  { name: 'Canada',             coordinates: [-106.34677,56.13037], code: 'CA' },
-  { name: 'Chile',              coordinates: [-71.54297,-35.67515], code: 'CL' },
-  { name: 'Colombia',           coordinates: [-74.29733,  4.57087], code: 'CO' },
-  { name: 'Costa Rica',         coordinates: [-83.75343,  9.74892], code: 'CR' },
-  { name: 'Croatia',            coordinates: [ 15.20000, 45.10000], code: 'HR' },
-  { name: 'Cuba',               coordinates: [-77.78117, 21.52176], code: 'CU' },
-  { name: 'Czech Republic',     coordinates: [ 15.47296, 49.81749], code: 'CZ' },
-  { name: 'Denmark',            coordinates: [  9.50179, 56.26392], code: 'DK' },
-  { name: 'Dominican Republic', coordinates: [-70.16265, 18.73569], code: 'DO' },
-  { name: 'Ecuador',            coordinates: [-78.18341, -1.83124], code: 'EC' },
-  { name: 'Egypt',              coordinates: [ 30.80250, 26.82055], code: 'EG' },
-  { name: 'El Salvador',        coordinates: [-88.89653, 13.79419], code: 'SV' },
-  { name: 'Ethiopia',           coordinates: [ 40.48967,  9.14500], code: 'ET' },
-  { name: 'Finland',            coordinates: [ 25.74815, 61.92411], code: 'FI' },
-  { name: 'France',             coordinates: [  2.21375, 46.22764], code: 'FR' },
-  { name: 'Germany',            coordinates: [ 10.45153, 51.16569], code: 'DE' },
-  { name: 'Ghana',              coordinates: [ -1.02319,  7.94653], code: 'GH' },
-  { name: 'Greece',             coordinates: [ 21.82431, 39.07421], code: 'GR' },
-  { name: 'Guatemala',          coordinates: [-90.23076, 15.78347], code: 'GT' },
-  { name: 'Haiti',              coordinates: [-72.28522, 18.97119], code: 'HT' },
-  { name: 'Honduras',           coordinates: [-86.24190, 15.20000], code: 'HN' },
-  { name: 'Hungary',            coordinates: [ 19.50330, 47.16249], code: 'HU' },
-  { name: 'Iceland',            coordinates: [-19.02084, 64.96305], code: 'IS' },
-  { name: 'Indonesia',          coordinates: [113.92133, -0.78928], code: 'ID' },
-  { name: 'Iran',               coordinates: [ 53.68805, 32.42791], code: 'IR' },
-  { name: 'Iraq',               coordinates: [ 43.67929, 33.22319], code: 'IQ' },
-  { name: 'Ireland',            coordinates: [ -8.24389, 53.41291], code: 'IE' },
-  { name: 'Israel',             coordinates: [ 34.85161, 31.04605], code: 'IL' },
-  { name: 'Italy',              coordinates: [ 12.56738, 41.87194], code: 'IT' },
-  { name: 'Japan',              coordinates: [138.25292, 36.20482], code: 'JP' },
-  { name: 'Kenya',              coordinates: [ 37.90619, -0.02356], code: 'KE' },
-  { name: 'South Korea',        coordinates: [127.76692, 35.90776], code: 'KR' },
-  { name: 'Kuwait',             coordinates: [ 47.48177, 29.31166], code: 'KW' },
-  { name: 'Malaysia',           coordinates: [101.97577,  4.21048], code: 'MY' },
-  { name: 'Mexico',             coordinates: [-102.55278,23.63450], code: 'MX' },
-  { name: 'Morocco',            coordinates: [ -7.09262, 31.79170], code: 'MA' },
-  { name: 'Mozambique',         coordinates: [ 35.52956,-18.66570], code: 'MZ' },
-  { name: 'Myanmar',            coordinates: [ 95.95622, 21.91397], code: 'MM' },
-  { name: 'Nepal',              coordinates: [ 84.12401, 28.39486], code: 'NP' },
-  { name: 'Netherlands',        coordinates: [  5.29127, 52.13263], code: 'NL' },
-  { name: 'New Zealand',        coordinates: [174.88597,-40.90056], code: 'NZ' },
-  { name: 'Nicaragua',          coordinates: [-85.20723, 12.86542], code: 'NI' },
-  { name: 'Norway',             coordinates: [  8.46895, 60.47202], code: 'NO' },
-  { name: 'Oman',               coordinates: [ 55.92326, 21.51258], code: 'OM' },
-  { name: 'Pakistan',           coordinates: [ 69.34512, 30.37532], code: 'PK' },
-  { name: 'Panama',             coordinates: [-80.78213,  8.53798], code: 'PA' },
-  { name: 'Paraguay',           coordinates: [-58.44383,-23.44250], code: 'PY' },
-  { name: 'Peru',               coordinates: [-75.01515, -9.18997], code: 'PE' },
-  { name: 'Philippines',        coordinates: [121.77402, 12.87972], code: 'PH' },
-  { name: 'Poland',             coordinates: [ 19.14514, 51.91944], code: 'PL' },
-  { name: 'Portugal',           coordinates: [ -8.22445, 39.39987], code: 'PT' },
-  { name: 'Qatar',              coordinates: [ 51.18388, 25.35483], code: 'QA' },
-  { name: 'Romania',            coordinates: [ 24.96676, 45.94316], code: 'RO' }
+  { name: 'Algeria',          coordinates: [1.65963,   28.03389], code: 'DZ' },
+  { name: 'Angola',           coordinates: [17.87389, -11.20269], code: 'AO' },
+  { name: 'Benin',            coordinates: [2.31583,    9.30769], code: 'BJ' },
+  { name: 'Botswana',         coordinates: [24.68487, -22.32847], code: 'BW' },
+  { name: 'Burkina Faso',     coordinates: [-1.56159,  12.23833], code: 'BF' },
+  { name: 'Burundi',          coordinates: [29.91889,  -3.37306], code: 'BI' },
+  { name: 'Cameroon',         coordinates: [12.35472,   7.36972], code: 'CM' },
+  { name: 'Cape Verde',       coordinates: [-24.01319, 16.00208], code: 'CV' },
+  { name: 'Central African Republic', coordinates: [20.93944, 6.61111], code: 'CF' },
+  { name: 'Chad',             coordinates: [18.73221,  15.45417], code: 'TD' },
+  { name: 'Comoros',          coordinates: [43.87222, -11.64553], code: 'KM' },
+  { name: 'Congo (Brazzaville)', coordinates: [15.82766, -0.22802], code: 'CG' },
+  { name: 'Congo (Kinshasa)',    coordinates: [21.75870, -4.03833], code: 'CD' },
+  { name: 'Djibouti',         coordinates: [42.59028,  11.82514], code: 'DJ' },
+  { name: 'Egypt',            coordinates: [30.80250,  26.82055], code: 'EG' },
+  { name: 'Equatorial Guinea',coordinates: [10.26789,   1.65080], code: 'GQ' },
+  { name: 'Eritrea',          coordinates: [39.78233,  15.17939], code: 'ER' },
+  { name: 'Eswatini',         coordinates: [31.46587, -26.52250], code: 'SZ' },
+  { name: 'Ethiopia',         coordinates: [40.48967,   9.14500], code: 'ET' },
+  { name: 'Gabon',            coordinates: [11.60944,  -0.80369], code: 'GA' },
+  { name: 'Gambia',           coordinates: [-15.31014,  13.44318], code: 'GM' },
+  { name: 'Ghana',            coordinates: [-1.02319,   7.94653], code: 'GH' },
+  { name: 'Guinea',           coordinates: [-9.69664,   9.94559], code: 'GN' },
+  { name: 'Guinea-Bissau',    coordinates: [-15.18041,  11.80375], code: 'GW' },
+  { name: 'Ivory Coast',      coordinates: [-5.54708,   7.54005], code: 'CI' },
+  { name: 'Kenya',            coordinates: [37.90619,  -0.02356], code: 'KE' },
+  { name: 'Lesotho',          coordinates: [28.23361, -29.60999], code: 'LS' },
+  { name: 'Liberia',          coordinates: [-9.42950,   6.42806], code: 'LR' },
+  { name: 'Libya',            coordinates: [17.22833,  26.33510], code: 'LY' },
+  { name: 'Madagascar',       coordinates: [46.86911, -18.76695], code: 'MG' },
+  { name: 'Malawi',           coordinates: [34.30153, -13.25431], code: 'MW' },
+  { name: 'Mali',             coordinates: [-3.99616,  17.57069], code: 'ML' },
+  { name: 'Mauritania',       coordinates: [-10.94083, 21.00789], code: 'MR' },
+  { name: 'Mauritius',        coordinates: [57.55215, -20.34840], code: 'MU' },
+  { name: 'Morocco',          coordinates: [-7.09262,  31.79170], code: 'MA' },
+  { name: 'Mozambique',       coordinates: [35.52956, -18.66570], code: 'MZ' },
+  { name: 'Namibia',          coordinates: [18.49041, -22.95764], code: 'NA' },
+  { name: 'Niger',            coordinates: [8.08167,   17.60779], code: 'NE' },
+  { name: 'Nigeria',          coordinates: [9.08200,    8.67530], code: 'NG' },
+  { name: 'Rwanda',           coordinates: [29.87388,  -1.94028], code: 'RW' },
+  { name: 'Senegal',          coordinates: [-14.45236,  14.49740], code: 'SN' },
+  { name: 'Seychelles',       coordinates: [55.46068,  -4.67957], code: 'SC' },
+  { name: 'Sierra Leone',     coordinates: [-11.77989,   8.46056], code: 'SL' },
+  { name: 'Somalia',          coordinates: [46.19962,   5.15215], code: 'SO' },
+  { name: 'South Africa',     coordinates: [22.93751, -30.55948], code: 'ZA' },
+  { name: 'South Sudan',      coordinates: [31.30698,   6.87699], code: 'SS' },
+  { name: 'Sudan',            coordinates: [30.21764,  12.86280], code: 'SD' },
+  { name: 'Tanzania',         coordinates: [34.88882,  -6.36903], code: 'TZ' },
+  { name: 'Togo',             coordinates: [0.82478,    8.61954], code: 'TG' },
+  { name: 'Tunisia',          coordinates: [9.53750,   33.88692], code: 'TN' },
+  { name: 'Uganda',           coordinates: [32.29027,   1.37333], code: 'UG' },
+  { name: 'Zambia',           coordinates: [27.84933, -13.13390], code: 'ZM' },
+  { name: 'Zimbabwe',         coordinates: [29.15486, -19.01544], code: 'ZW' }
 ];
 
-// Country marker component (unchanged)
-const CountryMarker = ({ position, code, name, onClick }) => (
+// CountryMarker: shows emoji flag
+const CountryMarker = ({ position, flag, name, onClick }) => (
   <group position={position}>
     <mesh>
-      <boxGeometry args={[0.3, 0.3, 0.1]} />
+      <boxGeometry args={[0.4, 0.4, 0.1]} />
       <meshStandardMaterial color="#1a365d" />
     </mesh>
     <Html position={[0, 0, 0.05]} center distanceFactor={15}>
-      <div className="country-marker" onClick={(e) => { e.stopPropagation(); onClick(name); }}>
-        <div className="country-code">{code}</div>
+      <div className="country-marker" onClick={e => { e.stopPropagation(); onClick(name); }}>
+        <div className="country-flag">{flag}</div>
         <div className="country-name">{name}</div>
       </div>
     </Html>
   </group>
 );
 
-// Globe with unified ref for rotation
 const ImprovedEarth = ({ onCountrySelect }) => {
-  // Single ref for the entire globe (oceans, continents, clouds, markers)
   const globeRef = useRef();
-  const cloudsRef = useRef();
 
-  // lat/long to 3D
   const latLongToVector3 = (lat, long, radius = 5) => {
     const phi = (90 - lat) * (Math.PI / 180);
     const theta = (long + 180) * (Math.PI / 180);
@@ -110,53 +96,34 @@ const ImprovedEarth = ({ onCountrySelect }) => {
     return [x, y, z];
   };
 
-  // Rotation effect on globeRef and cloudsRef
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (globeRef.current) globeRef.current.rotation.y += 0.001;
-      if (cloudsRef.current) cloudsRef.current.rotation.y += 0.0012;
-    }, 10);
-    return () => clearInterval(id);
-  }, []);
+  useFrame(() => {
+    if (globeRef.current) globeRef.current.rotation.y += 0.001;
+  });
 
   return (
     <group ref={globeRef}>
-      {/* Ocean sphere */}
+      {/* Ocean */}
       <mesh>
         <sphereGeometry args={[5, 64, 64]} />
         <meshPhongMaterial
           color="#1E90FF"
           shininess={60}
-          specular={new THREE.Color('#FFFFFF')}
-          opacity={0.9}
-          transparent
+          specular={new THREE.Color('#FFFFFF')}      
         />
       </mesh>
 
-      {/* Continents (segmented spheres) */}
+      {/* Continents */}
       <mesh>
-        <sphereGeometry args={[5.05, 32, 32, Math.PI * 1.25, Math.PI * 0.4, Math.PI * 0.2, Math.PI * 0.4]} />
+        <sphereGeometry args={[5.05, 32, 32]} />
         <meshStandardMaterial color="#4CAF50" roughness={0.8} />
-      </mesh>
-      {/* Repeat for other continents similarly... */}
-
-      {/* Clouds layer */}
-      <mesh ref={cloudsRef}>
-        <sphereGeometry args={[5.1, 32, 32]} />
-        <meshPhongMaterial
-          color="#FFFFFF"
-          opacity={0.3}
-          transparent
-          side={THREE.DoubleSide}
-        />
       </mesh>
 
       {/* Country markers */}
-      {countries.map((c) => (
+      {countries.map(c => (
         <CountryMarker
           key={c.code}
           position={latLongToVector3(c.coordinates[1], c.coordinates[0], 5.06)}
-          code={c.code}
+          flag={countryCodeToEmoji(c.code)}
           name={c.name}
           onClick={onCountrySelect}
         />
@@ -169,20 +136,9 @@ const GlobeComponent = ({ onCountrySelect }) => (
   <div className="globe-container">
     <Canvas camera={{ position: [0, 0, 12], fov: 45 }} gl={{ alpha: false }} style={{ background: '#000033' }}>
       <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} intensity={1.5} />
-      <directionalLight position={[-5, 5, 5]} intensity={1} />
-      <spotLight position={[0, 15, 0]} angle={0.3} penumbra={1} intensity={1} castShadow />
-
+      <directionalLight position={[5, 3, 5]} intensity={1.2} />
+      <OrbitControls enableZoom enablePan={false} minDistance={7} maxDistance={15} />
       <ImprovedEarth onCountrySelect={onCountrySelect} />
-
-      <OrbitControls
-        enableZoom
-        enablePan={false}
-        minDistance={7}
-        maxDistance={15}
-        autoRotate={false}
-        autoRotateSpeed={0.5}
-      />
     </Canvas>
     <div className="instructions">Click on a country flag to explore its historical timeline</div>
   </div>
