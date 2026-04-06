@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState, useEffect } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,7 +6,78 @@ import { feature } from 'topojson-client';
 import worldData from 'world-atlas/countries-110m.json';
 import './Globe.css';
 
-// African countries with their coordinates
+// Load and convert world data from TopoJSON to GeoJSON
+const worldFeatures = feature(worldData, worldData.objects.countries);
+
+// Helper function to extract coordinates from GeoJSON feature
+const extractCoordinates = (geometry) => {
+  if (!geometry || !geometry.coordinates) return [];
+  
+  const coords = [];
+  const processRing = (ring) => {
+    return ring.map(([lon, lat]) => [lon, lat]);
+  };
+  
+  if (geometry.type === 'Polygon') {
+    // Use only the outer ring (first ring), ignore holes
+    return processRing(geometry.coordinates[0]);
+  } else if (geometry.type === 'MultiPolygon') {
+    // Return the largest polygon
+    let largestRing = [];
+    geometry.coordinates.forEach(polygon => {
+      const ring = processRing(polygon[0]);
+      if (ring.length > largestRing.length) {
+        largestRing = ring;
+      }
+    });
+    return largestRing;
+  }
+  return coords;
+};
+
+// Predefined regions extracted from world data
+const getRegionFromFeatures = (featureFilter) => {
+  const coordinates = [];
+  worldFeatures.features.forEach((feat) => {
+    if (featureFilter(feat)) {
+      const coords = extractCoordinates(feat.geometry);
+      if (coords.length > 0) {
+        coordinates.push(...coords);
+      }
+    }
+  });
+  return coordinates;
+};
+
+// Convert longitude/latitude to 3D sphere vector
+const latLngToVector3 = (lon, lat, radius = 5) => {
+  const phi = (90 - lat) * (Math.PI / 180);
+  const theta = (lon + 180) * (Math.PI / 180);
+
+  const x = -radius * Math.sin(phi) * Math.cos(theta);
+  const y = radius * Math.cos(phi);
+  const z = radius * Math.sin(phi) * Math.sin(theta);
+
+  return new THREE.Vector3(x, y, z);
+};
+
+// African country codes (short form) - maps to full names for filtering
+const AFRICAN_COUNTRY_CODES = ['DZ', 'AO', 'BJ', 'BW', 'BF', 'BI', 'CM', 'CV', 'CF', 'TD', 'KM', 'CG', 'CD', 'DJ', 'EG', 'GQ', 'ER', 'SZ', 'ET', 'GA', 'GM', 'GH', 'GN', 'GW', 'CI', 'KE', 'LS', 'LR', 'LY', 'MG', 'MW', 'ML', 'MR', 'MU', 'MA', 'MZ', 'NA', 'NE', 'NG', 'RW', 'SN', 'SC', 'SL', 'SO', 'ZA', 'SS', 'SD', 'TZ', 'TG', 'TN', 'UG', 'ZM', 'ZW'];
+
+// Map codes to country names for filtering
+const AFRICAN_COUNTRY_NAMES = {
+  'DZ': 'Algeria', 'AO': 'Angola', 'BJ': 'Benin', 'BW': 'Botswana', 'BF': 'Burkina Faso', 'BI': 'Burundi',
+  'CM': 'Cameroon', 'CV': 'Cape Verde', 'CF': 'Central African Republic', 'TD': 'Chad', 'KM': 'Comoros', 'CG': 'Congo',
+  'CD': 'Congo (Kinshasa)', 'DJ': 'Djibouti', 'EG': 'Egypt', 'GQ': 'Equatorial Guinea', 'ER': 'Eritrea', 'SZ': 'Eswatini',
+  'ET': 'Ethiopia', 'GA': 'Gabon', 'GM': 'Gambia', 'GH': 'Ghana', 'GN': 'Guinea', 'GW': 'Guinea-Bissau',
+  'CI': 'Ivory Coast', 'KE': 'Kenya', 'LS': 'Lesotho', 'LR': 'Liberia', 'LY': 'Libya', 'MG': 'Madagascar',
+  'MW': 'Malawi', 'ML': 'Mali', 'MR': 'Mauritania', 'MU': 'Mauritius', 'MA': 'Morocco', 'MZ': 'Mozambique',
+  'NA': 'Namibia', 'NE': 'Niger', 'NG': 'Nigeria', 'RW': 'Rwanda', 'SN': 'Senegal', 'SC': 'Seychelles',
+  'SL': 'Sierra Leone', 'SO': 'Somalia', 'ZA': 'South Africa', 'SS': 'South Sudan', 'SD': 'Sudan', 'TZ': 'Tanzania',
+  'TG': 'Togo', 'TN': 'Tunisia', 'UG': 'Uganda', 'ZM': 'Zambia', 'ZW': 'Zimbabwe'
+};
+
+// African countries with their coordinates for markers
 const countries = [
   { name: 'Algeria',          coordinates: [1.65963,   28.03389], code: 'DZ' },
   { name: 'Angola',           coordinates: [17.87389, -11.20269], code: 'AO' },
@@ -63,61 +134,6 @@ const countries = [
   { name: 'Zimbabwe',         coordinates: [29.15486, -19.01544], code: 'ZW' }
 ];
 
-// Load and convert world data from TopoJSON to GeoJSON
-const worldFeatures = feature(worldData, worldData.objects.countries);
-
-// Helper function to extract coordinates from GeoJSON feature
-const extractCoordinates = (geometry) => {
-  if (!geometry || !geometry.coordinates) return [];
-  
-  const coords = [];
-  const processRing = (ring) => {
-    return ring.map(([lon, lat]) => [lon, lat]);
-  };
-  
-  if (geometry.type === 'Polygon') {
-    // Use only the outer ring (first ring), ignore holes
-    return processRing(geometry.coordinates[0]);
-  } else if (geometry.type === 'MultiPolygon') {
-    // Return the largest polygon
-    let largestRing = [];
-    geometry.coordinates.forEach(polygon => {
-      const ring = processRing(polygon[0]);
-      if (ring.length > largestRing.length) {
-        largestRing = ring;
-      }
-    });
-    return largestRing;
-  }
-  return coords;
-};
-
-// Predefined regions extracted from world data
-const getRegionFromFeatures = (featureFilter) => {
-  const coordinates = [];
-  worldFeatures.features.forEach((feat) => {
-    if (featureFilter(feat)) {
-      const coords = extractCoordinates(feat.geometry);
-      if (coords.length > 0) {
-        coordinates.push(...coords);
-      }
-    }
-  });
-  return coordinates;
-};
-
-// Unified lat/lng to 3D sphere helper
-const latLngToVector3 = (lat, lng, radius = 5) => {
-  const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lng + 180) * (Math.PI / 180);
-
-  return new THREE.Vector3(
-    -(radius * Math.sin(phi) * Math.cos(theta)),
-    radius * Math.cos(phi),
-    radius * Math.sin(phi) * Math.sin(theta)
-  );
-};
-
 // Draw country borders from GeoJSON
 const CountryBorders = () => {
   return (
@@ -131,8 +147,8 @@ const CountryBorders = () => {
             : [geometry.coordinates];
 
         return polygons.map((polygon, j) => {
-          const points = polygon[0].map(([lng, lat]) =>
-            latLngToVector3(lat, lng, 5.02)
+          const points = polygon[0].map(([lon, lat]) =>
+            latLngToVector3(lon, lat, 5.02)
           );
 
           if (points.length < 2) return null;
@@ -168,8 +184,8 @@ const CountryMeshes = () => {
         return polygons.map((polygon, j) => {
           const shape = new THREE.Shape();
 
-          polygon[0].forEach(([lng, lat], index) => {
-            const v = latLngToVector3(lat, lng, 5.01);
+          polygon[0].forEach(([lon, lat], index) => {
+            const v = latLngToVector3(lon, lat, 5.01);
 
             if (index === 0) shape.moveTo(v.x, v.y);
             else shape.lineTo(v.x, v.y);
@@ -194,34 +210,53 @@ const CountryMeshes = () => {
 };
 
 // Optimized country marker with circular visual indicator
-const CountryMarker = React.memo(({ position, name, onClick }) => {
+const CountryMarker = React.memo(({ position, name, code, onClick }) => {
   const [hovered, setHovered] = React.useState(false);
-  
+
   return (
     <group position={position}>
-      {/* Circular marker */}
+      {/* Orange dot */}
       <mesh
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
         onClick={(e) => { e.stopPropagation(); onClick(name); }}
+        scale={hovered ? 1.4 : 1}
       >
         <sphereGeometry args={[0.06, 8, 8]} />
         <meshBasicMaterial 
           color={hovered ? '#FFD700' : '#FF6B35'} 
           transparent
-          opacity={0.9}
+          opacity={0.95}
         />
       </mesh>
-      
-      {/* Country name label - ALWAYS VISIBLE */}
-      <Html position={[0, 0.15, 0]} center distanceFactor={8}>
-        <div className="country-label-permanent" style={{
-          color: hovered ? '#FFD700' : '#ffffff',
-          fontSize: '9px',
-          fontWeight: '500',
+
+      {/* ALWAYS visible: country code */}
+      <Html position={[0, 0.12, 0]} center distanceFactor={10}>
+        <div style={{
+          color: '#ffffff',
+          fontSize: '8px',
+          fontWeight: '600',
           textShadow: '0 0 3px rgba(0,0,0,0.8)',
           pointerEvents: 'none',
           whiteSpace: 'nowrap'
+        }}>
+          {code}
+        </div>
+      </Html>
+
+      {/* HOVER ONLY: full name */}
+      <Html position={[0, 0.25, 0]} center distanceFactor={8}>
+        <div style={{
+          color: '#FFD700',
+          fontSize: '10px',
+          fontWeight: '500',
+          background: 'rgba(0,0,0,0.6)',
+          padding: '2px 6px',
+          borderRadius: '4px',
+          whiteSpace: 'nowrap',
+          opacity: hovered ? 1 : 0,
+          transition: 'opacity 0.2s ease',
+          pointerEvents: 'none'
         }}>
           {name}
         </div>
@@ -239,9 +274,9 @@ const ContinentOutlines = () => {
     // Calculate centroid on sphere surface
     const centroid = new THREE.Vector3();
     
-    coordinates.forEach(([long, lat]) => {
+    coordinates.forEach(([lon, lat]) => {
       const phi = (90 - lat) * (Math.PI / 180);
-      const theta = (long + 180) * (Math.PI / 180);
+      const theta = (lon + 180) * (Math.PI / 180);
       
       centroid.x += -(Math.sin(phi) * Math.cos(theta));
       centroid.y += Math.cos(phi);
@@ -253,17 +288,17 @@ const ContinentOutlines = () => {
     // Create vertices for the filled shape on sphere surface
     const vertices = [];
     
-    coordinates.forEach(([long, lat], i) => {
+    coordinates.forEach(([lon, lat], i) => {
       const phi = (90 - lat) * (Math.PI / 180);
-      const theta = (long + 180) * (Math.PI / 180);
+      const theta = (lon + 180) * (Math.PI / 180);
       const x = -(FILL_RADIUS * Math.sin(phi) * Math.cos(theta));
       const z = FILL_RADIUS * Math.sin(phi) * Math.sin(theta);
       const y = FILL_RADIUS * Math.cos(phi);
       
       if (i < coordinates.length - 1) {
-        const [long2, lat2] = coordinates[i + 1];
+        const [lon2, lat2] = coordinates[i + 1];
         const phi2 = (90 - lat2) * (Math.PI / 180);
-        const theta2 = (long2 + 180) * (Math.PI / 180);
+        const theta2 = (lon2 + 180) * (Math.PI / 180);
         const x2 = -(FILL_RADIUS * Math.sin(phi2) * Math.cos(theta2));
         const z2 = FILL_RADIUS * Math.sin(phi2) * Math.sin(theta2);
         const y2 = FILL_RADIUS * Math.cos(phi2);
@@ -292,9 +327,9 @@ const ContinentOutlines = () => {
   };
 
   const createContinentLine = (coordinates, color, opacity, linewidth = 3) => {
-    const points = coordinates.map(([long, lat]) => {
+    const points = coordinates.map(([lon, lat]) => {
       const phi = (90 - lat) * (Math.PI / 180);
-      const theta = (long + 180) * (Math.PI / 180);
+      const theta = (lon + 180) * (Math.PI / 180);
       const x = -(LINE_RADIUS * Math.sin(phi) * Math.cos(theta));
       const z = LINE_RADIUS * Math.sin(phi) * Math.sin(theta);
       const y = LINE_RADIUS * Math.cos(phi);
@@ -316,15 +351,7 @@ const ContinentOutlines = () => {
   // Detailed Africa outline from real world data
   const africaOutline = getRegionFromFeatures((feat) => {
     const country = feat.properties?.name || '';
-    const africanCountries = ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 
-      'Cameroon', 'Cape Verde', 'Central African Republic', 'Chad', 'Comoros', 'Congo', 
-      'Côte d\'Ivoire', 'Democratic Republic of the Congo', 'Djibouti', 'Egypt', 'Equatorial Guinea', 
-      'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Guinea-Bissau', 
-      'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 
-      'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Senegal', 
-      'Seychelles', 'Sierra Leone', 'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 
-      'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'];
-    return africanCountries.some(ac => country.includes(ac));
+    return AFRICAN_COUNTRY_CODES.some(code => country.includes(AFRICAN_COUNTRY_NAMES[code]));
   });
 
   // Get continental regions from world data
@@ -420,17 +447,19 @@ const ImprovedEarth = ({ onCountrySelect, lastInteractionTime }) => {
   const globeRef = useRef();
 
   // Memoize country markers to avoid recreating them
-  const countryMarkers = useMemo(() => 
-    countries.map(c => {
-      const vec = latLngToVector3(c.coordinates[1], c.coordinates[0], 5.05);
-      return {
-        key: c.code,
-        position: [vec.x, vec.y, vec.z],
-        name: c.name
-      };
-    }),
-    []
-  );
+ const countryMarkers = useMemo(() => 
+  countries.map(c => {
+    const [lon, lat] = c.coordinates;
+    const vec = latLngToVector3(lon, lat, 5.05);
+    return {
+      key: c.code,
+      position: [vec.x, vec.y, vec.z],
+      name: c.name,
+      code: c.code // 👈 ADD THIS
+    };
+  }),
+  []
+);
 
   // Auto-rotation only after 2 minutes of inactivity
   useFrame((state, delta) => {
@@ -451,13 +480,14 @@ const ImprovedEarth = ({ onCountrySelect, lastInteractionTime }) => {
       
       {/* Country markers */}
       {countryMarkers.map(c => (
-        <CountryMarker
-          key={c.key}
-          position={c.position}
-          name={c.name}
-          onClick={onCountrySelect}
-        />
-      ))}
+      <CountryMarker
+        key={c.key}
+        position={c.position}
+        name={c.name}
+        code={c.code} // 👈 ADD THIS
+        onClick={onCountrySelect}
+      />
+    ))}
     </group>
   );
 };
