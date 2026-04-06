@@ -154,7 +154,7 @@ const CountryBorders = () => {
           if (points.length < 2) return null;
 
           const curve = new THREE.CatmullRomCurve3(points, true);
-          const smoothPoints = curve.getPoints(200);
+          const smoothPoints = curve.getPoints(50);
 
           const geometryLine = new THREE.BufferGeometry().setFromPoints(smoothPoints);
 
@@ -265,6 +265,41 @@ const CountryMarker = React.memo(({ position, name, code, onClick }) => {
   );
 });
 
+// Ocean labels positioned on the sphere
+const OceanLabels = () => {
+  const oceans = [
+    { name: 'Atlantic Ocean', lon: -30, lat: 20 },
+    { name: 'Pacific Ocean', lon: 150, lat: 10 },
+    { name: 'Indian Ocean', lon: 80, lat: -20 },
+    { name: 'Arctic Ocean', lon: 0, lat: 75 },
+    { name: 'Southern Ocean', lon: 0, lat: -75 }
+  ];
+
+  return (
+    <group>
+      {oceans.map((ocean) => {
+        const position = latLngToVector3(ocean.lon, ocean.lat, 5.1);
+        return (
+          <Html key={ocean.name} position={[position.x, position.y, position.z]} center distanceFactor={12}>
+            <div style={{
+              color: '#87CEEB',
+              fontSize: '12px',
+              fontWeight: '400',
+              fontStyle: 'italic',
+              textShadow: '0 0 4px rgba(0,0,0,0.6)',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap',
+              opacity: 0.7
+            }}>
+              {ocean.name}
+            </div>
+          </Html>
+        );
+      })}
+    </group>
+  );
+};
+
 // Continent outline data - simplified paths
 const ContinentOutlines = () => {
   const FILL_RADIUS = 5.01;
@@ -338,7 +373,7 @@ const ContinentOutlines = () => {
     
     // Smooth the line with Catmull-Rom curve
     const curve = new THREE.CatmullRomCurve3(points, true);
-    const smoothPoints = curve.getPoints(Math.max(100, points.length * 5));
+    const smoothPoints = curve.getPoints(Math.max(50, points.length * 2));
     
     const geometry = new THREE.BufferGeometry().setFromPoints(smoothPoints);
     return (
@@ -439,6 +474,9 @@ const EarthSphere = () => {
       
       {/* Regional continent outlines */}
       <ContinentOutlines />
+      
+      {/* Ocean labels */}
+      <OceanLabels />
     </>
   );
 };
