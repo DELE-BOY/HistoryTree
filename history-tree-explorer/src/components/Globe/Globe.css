@@ -2,54 +2,41 @@
   height: 100vh;
   width: 100%;
   position: relative;
-  background: radial-gradient(ellipse at bottom, #1165c6 0%, #090A0F 100%);
+  background: radial-gradient(ellipse at bottom, #0a1929 0%, #020308 100%);
+  cursor: grab;
+}
+
+.globe-container:active {
+  cursor: grabbing;
 }
 
 .instructions {
   position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 16px;
-  font-weight: 300;
-  padding: 10px;
-  background-color: rgba(0, 0, 0, 0.5);
-  border-radius: 4px;
-  margin: 0 auto;
-  width: fit-content;
+  font-weight: 400;
+  padding: 12px 24px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 90%;
 }
 
-.country-marker {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  text-shadow: 0px 0px 3px #000;
-  background-color: rgba(0, 40, 80, 0.7);
-  padding: 4px 8px;
-  border-radius: 4px;
-  transform: scale(1);
-  transition: transform 0.2s ease, background-color 0.2s ease;
-  width: 60px;
-}
-
-.country-marker:hover {
-  transform: scale(1.1);
-  background-color: rgba(0, 60, 120, 0.9);
-}
-
-.country-code {
-  font-weight: bold;
-  font-size: 18px;
+.country-marker-label {
   color: white;
-  margin-bottom: 2px;
-}
-
-.country-name {
-  color: white;
-  font-weight: 300;
-  font-size: 10px;
+  font-weight: 500;
+  font-size: 13px;
   white-space: nowrap;
+  background-color: rgba(0, 0, 0, 0.85);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }

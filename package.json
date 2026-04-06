@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "dev": "cd history-tree-explorer && npm start",
+    "start": "cd history-tree-explorer && npm start",
+    "build": "cd history-tree-explorer && npm run build"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "three": "^0.183.2"
+  }
+}
