@@ -2,6 +2,8 @@ import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { feature } from 'topojson-client';
+import worldData from 'world-atlas/countries-110m.json';
 import './Globe.css';
 
 // African countries with their coordinates
@@ -61,6 +63,136 @@ const countries = [
   { name: 'Zimbabwe',         coordinates: [29.15486, -19.01544], code: 'ZW' }
 ];
 
+// Load and convert world data from TopoJSON to GeoJSON
+const worldFeatures = feature(worldData, worldData.objects.countries);
+
+// Helper function to extract coordinates from GeoJSON feature
+const extractCoordinates = (geometry) => {
+  if (!geometry || !geometry.coordinates) return [];
+  
+  const coords = [];
+  const processRing = (ring) => {
+    return ring.map(([lon, lat]) => [lon, lat]);
+  };
+  
+  if (geometry.type === 'Polygon') {
+    // Use only the outer ring (first ring), ignore holes
+    return processRing(geometry.coordinates[0]);
+  } else if (geometry.type === 'MultiPolygon') {
+    // Return the largest polygon
+    let largestRing = [];
+    geometry.coordinates.forEach(polygon => {
+      const ring = processRing(polygon[0]);
+      if (ring.length > largestRing.length) {
+        largestRing = ring;
+      }
+    });
+    return largestRing;
+  }
+  return coords;
+};
+
+// Predefined regions extracted from world data
+const getRegionFromFeatures = (featureFilter) => {
+  const coordinates = [];
+  worldFeatures.features.forEach((feat) => {
+    if (featureFilter(feat)) {
+      const coords = extractCoordinates(feat.geometry);
+      if (coords.length > 0) {
+        coordinates.push(...coords);
+      }
+    }
+  });
+  return coordinates;
+};
+
+// Unified lat/lng to 3D sphere helper
+const latLngToVector3 = (lat, lng, radius = 5) => {
+  const phi = (90 - lat) * (Math.PI / 180);
+  const theta = (lng + 180) * (Math.PI / 180);
+
+  return new THREE.Vector3(
+    -(radius * Math.sin(phi) * Math.cos(theta)),
+    radius * Math.cos(phi),
+    radius * Math.sin(phi) * Math.sin(theta)
+  );
+};
+
+// Draw country borders from GeoJSON
+const CountryBorders = () => {
+  return (
+    <group>
+      {worldFeatures.features.map((feature, i) => {
+        const { geometry } = feature;
+
+        const polygons =
+          geometry.type === "MultiPolygon"
+            ? geometry.coordinates
+            : [geometry.coordinates];
+
+        return polygons.map((polygon, j) => {
+          const points = polygon[0].map(([lng, lat]) =>
+            latLngToVector3(lat, lng, 5.02)
+          );
+
+          if (points.length < 2) return null;
+
+          const curve = new THREE.CatmullRomCurve3(points, true);
+          const smoothPoints = curve.getPoints(200);
+
+          const geometryLine = new THREE.BufferGeometry().setFromPoints(smoothPoints);
+
+          return (
+            <line key={`border-${i}-${j}`} geometry={geometryLine}>
+              <lineBasicMaterial color="#2ecc71" opacity={0.7} transparent />
+            </line>
+          );
+        });
+      })}
+    </group>
+  );
+};
+
+// Filled country meshes (optional but clean)
+const CountryMeshes = () => {
+  return (
+    <group>
+      {worldFeatures.features.map((feature, i) => {
+        const { geometry } = feature;
+
+        const polygons =
+          geometry.type === "MultiPolygon"
+            ? geometry.coordinates
+            : [geometry.coordinates];
+
+        return polygons.map((polygon, j) => {
+          const shape = new THREE.Shape();
+
+          polygon[0].forEach(([lng, lat], index) => {
+            const v = latLngToVector3(lat, lng, 5.01);
+
+            if (index === 0) shape.moveTo(v.x, v.y);
+            else shape.lineTo(v.x, v.y);
+          });
+
+          const geometryShape = new THREE.ShapeGeometry(shape);
+
+          return (
+            <mesh key={`mesh-${i}-${j}`} geometry={geometryShape}>
+              <meshStandardMaterial
+                color="#333"
+                opacity={0.5}
+                transparent
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+          );
+        });
+      })}
+    </group>
+  );
+};
+
 // Optimized country marker with circular visual indicator
 const CountryMarker = React.memo(({ position, name, onClick }) => {
   const [hovered, setHovered] = React.useState(false);
@@ -100,24 +232,61 @@ const CountryMarker = React.memo(({ position, name, onClick }) => {
 
 // Continent outline data - simplified paths
 const ContinentOutlines = () => {
-  const createContinentFill = (coordinates, color) => {
-    const shape = new THREE.Shape();
+  const FILL_RADIUS = 5.01;
+  const LINE_RADIUS = 5.02;
+
+  const createFilledContinent = (coordinates, color, opacity = 0.7) => {
+    // Calculate centroid on sphere surface
+    const centroid = new THREE.Vector3();
+    
+    coordinates.forEach(([long, lat]) => {
+      const phi = (90 - lat) * (Math.PI / 180);
+      const theta = (long + 180) * (Math.PI / 180);
+      
+      centroid.x += -(Math.sin(phi) * Math.cos(theta));
+      centroid.y += Math.cos(phi);
+      centroid.z += Math.sin(phi) * Math.sin(theta);
+    });
+    
+    centroid.divideScalar(coordinates.length).normalize().multiplyScalar(FILL_RADIUS);
+    
+    // Create vertices for the filled shape on sphere surface
+    const vertices = [];
+    
     coordinates.forEach(([long, lat], i) => {
       const phi = (90 - lat) * (Math.PI / 180);
       const theta = (long + 180) * (Math.PI / 180);
-      const radius = 5.01;
-      const x = -(radius * Math.sin(phi) * Math.cos(theta));
-      const z = radius * Math.sin(phi) * Math.sin(theta);
-      const y = radius * Math.cos(phi);
+      const x = -(FILL_RADIUS * Math.sin(phi) * Math.cos(theta));
+      const z = FILL_RADIUS * Math.sin(phi) * Math.sin(theta);
+      const y = FILL_RADIUS * Math.cos(phi);
       
-      if (i === 0) shape.moveTo(x, y);
-      else shape.lineTo(x, y);
+      if (i < coordinates.length - 1) {
+        const [long2, lat2] = coordinates[i + 1];
+        const phi2 = (90 - lat2) * (Math.PI / 180);
+        const theta2 = (long2 + 180) * (Math.PI / 180);
+        const x2 = -(FILL_RADIUS * Math.sin(phi2) * Math.cos(theta2));
+        const z2 = FILL_RADIUS * Math.sin(phi2) * Math.sin(theta2);
+        const y2 = FILL_RADIUS * Math.cos(phi2);
+        
+        // Create triangle fan from centroid
+        vertices.push(centroid.x, centroid.y, centroid.z);
+        vertices.push(x, y, z);
+        vertices.push(x2, y2, z2);
+      }
     });
     
-    const geometry = new THREE.ShapeGeometry(shape);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.computeVertexNormals();
+    
     return (
       <mesh key={Math.random()} geometry={geometry}>
-        <meshStandardMaterial color={color} side={THREE.DoubleSide} />
+        <meshStandardMaterial 
+          color={color} 
+          side={THREE.DoubleSide}
+          opacity={opacity}
+          transparent
+        />
       </mesh>
     );
   };
@@ -126,14 +295,17 @@ const ContinentOutlines = () => {
     const points = coordinates.map(([long, lat]) => {
       const phi = (90 - lat) * (Math.PI / 180);
       const theta = (long + 180) * (Math.PI / 180);
-      const radius = 5.03;
-      const x = -(radius * Math.sin(phi) * Math.cos(theta));
-      const z = radius * Math.sin(phi) * Math.sin(theta);
-      const y = radius * Math.cos(phi);
+      const x = -(LINE_RADIUS * Math.sin(phi) * Math.cos(theta));
+      const z = LINE_RADIUS * Math.sin(phi) * Math.sin(theta);
+      const y = LINE_RADIUS * Math.cos(phi);
       return new THREE.Vector3(x, y, z);
     });
     
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    // Smooth the line with Catmull-Rom curve
+    const curve = new THREE.CatmullRomCurve3(points, true);
+    const smoothPoints = curve.getPoints(Math.max(100, points.length * 5));
+    
+    const geometry = new THREE.BufferGeometry().setFromPoints(smoothPoints);
     return (
       <line key={Math.random()} geometry={geometry}>
         <lineBasicMaterial color={color} opacity={opacity} transparent linewidth={linewidth} />
@@ -141,82 +313,78 @@ const ContinentOutlines = () => {
     );
   };
 
-  // Detailed Africa outline
-  const africaOutline = [
-    [-17, 33], [-11, 35], [-6, 37], [3, 37], [10, 37], [16, 35], [25, 32], 
-    [31, 31], [35, 30], [37, 27], [39, 22], [41, 16], [43, 12], [47, 11],
-    [51, 10], [51, 2], [51, -5], [50, -10], [47, -15], [43, -18], [40, -25],
-    [36, -28], [33, -32], [30, -34], [25, -34], [20, -34], [17, -30], 
-    [15, -25], [13, -18], [11, -10], [9, -2], [7, 5], [3, 8], [-1, 11],
-    [-5, 14], [-10, 18], [-15, 23], [-17, 28], [-17, 33]
-  ];
+  // Detailed Africa outline from real world data
+  const africaOutline = getRegionFromFeatures((feat) => {
+    const country = feat.properties?.name || '';
+    const africanCountries = ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 
+      'Cameroon', 'Cape Verde', 'Central African Republic', 'Chad', 'Comoros', 'Congo', 
+      'Côte d\'Ivoire', 'Democratic Republic of the Congo', 'Djibouti', 'Egypt', 'Equatorial Guinea', 
+      'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Guinea-Bissau', 
+      'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 
+      'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Senegal', 
+      'Seychelles', 'Sierra Leone', 'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 
+      'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'];
+    return africanCountries.some(ac => country.includes(ac));
+  });
 
-  // African country borders
-  const africanBorders = [
-    [[25, 32], [25, 22]], [[10, 23], [16, 23]], [[-5, 15], [-5, 5]],
-    [[9, 13], [9, 4]], [[25, 22], [35, 10]], [[35, 0], [40, -6]],
-    [[22, -8], [22, -18]], [[20, -22], [32, -22]],
-  ];
+  // Get continental regions from world data
+  const northAmerica = getRegionFromFeatures((feat) => {
+    const country = feat.properties?.name || '';
+    return ['United States', 'Canada', 'Mexico', 'Guatemala', 'Belize', 'Honduras', 'El Salvador', 'Nicaragua', 'Costa Rica', 'Panama'].some(c => country.includes(c));
+  });
 
-  // Other continents (simplified for gray fill)
-  const northAmerica = [[-168, 65], [-141, 69], [-95, 69], [-75, 62], [-60, 52], [-80, 45], [-125, 50], [-125, 32], [-117, 32], [-110, 25], [-105, 20], [-97, 18], [-90, 15], [-88, 18], [-82, 25], [-80, 28], [-75, 35], [-70, 42], [-67, 45], [-60, 50], [-55, 55], [-65, 60], [-80, 62], [-95, 69]];
-  const southAmerica = [[-81, 12], [-78, 1], [-75, -10], [-70, -18], [-65, -22], [-60, -30], [-58, -38], [-65, -40], [-68, -45], [-72, -53], [-68, -55], [-65, -52], [-60, -42], [-57, -35], [-52, -28], [-48, -18], [-45, -5], [-50, 2], [-58, 5], [-68, 10], [-75, 10], [-81, 12]];
-  const europe = [[-10, 53], [-5, 58], [5, 58], [15, 55], [25, 54], [30, 60], [40, 68], [60, 70], [65, 68], [60, 60], [50, 55], [40, 52], [30, 48], [20, 45], [10, 43], [0, 43], [-5, 48], [-10, 53]];
-  const asia = [[26, 70], [40, 72], [60, 72], [80, 70], [100, 65], [120, 55], [135, 45], [145, 50], [155, 60], [170, 65], [180, 65], [-170, 60], [-160, 55], [140, 35], [130, 25], [120, 20], [110, 10], [100, 8], [95, 18], [80, 25], [70, 30], [60, 35], [50, 38], [40, 42], [35, 45], [30, 50], [26, 70]];
-  const australia = [[113, -10], [130, -11], [140, -15], [145, -20], [150, -28], [153, -35], [150, -38], [145, -38], [138, -35], [130, -32], [120, -30], [115, -22], [113, -15], [113, -10]];
+  const southAmerica = getRegionFromFeatures((feat) => {
+    const country = feat.properties?.name || '';
+    return ['Colombia', 'Venezuela', 'Guyana', 'Suriname', 'French Guiana', 'Brazil', 'Peru', 'Ecuador', 
+      'Bolivia', 'Chile', 'Argentina', 'Uruguay', 'Paraguay'].some(c => country.includes(c));
+  });
+
+  const europe = getRegionFromFeatures((feat) => {
+    const country = feat.properties?.name || '';
+    const europeanCountries = ['Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 
+      'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 
+      'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Latvia', 'Liechtenstein', 'Lithuania', 
+      'Luxembourg', 'Malta', 'Moldova', 'Monaco', 'Montenegro', 'Netherlands', 'North Macedonia', 'Norway', 
+      'Poland', 'Portugal', 'Romania', 'Russia', 'San Marino', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 
+      'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'];
+    return europeanCountries.some(c => country.includes(c));
+  });
+
+  const asia = getRegionFromFeatures((feat) => {
+    const country = feat.properties?.name || '';
+    const asianCountries = ['Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Bhutan', 
+      'Brunei', 'Cambodia', 'China', 'Georgia', 'Hong Kong', 'India', 'Indonesia', 'Iran', 'Iraq', 
+      'Israel', 'Japan', 'Jordan', 'Kazakhstan', 'Korea', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Lebanon', 
+      'Macao', 'Malaysia', 'Maldives', 'Mongolia', 'Myanmar', 'Nepal', 'Oman', 'Pakistan', 'Philippines', 
+      'Qatar', 'Saudi Arabia', 'Singapore', 'Sri Lanka', 'Syria', 'Taiwan', 'Tajikistan', 'Thailand', 
+      'Timor', 'Turkey', 'Turkmenistan', 'United Arab Emirates', 'Uzbekistan', 'Vietnam', 'West Bank', 'Yemen'];
+    return asianCountries.some(c => country.includes(c));
+  });
+
+  const australia = getRegionFromFeatures((feat) => {
+    const country = feat.properties?.name || '';
+    return ['Australia', 'Fiji', 'Kiribati', 'Marshall Islands', 'Micronesia', 'Nauru', 'New Zealand', 
+      'Palau', 'Papua New Guinea', 'Samoa', 'Solomon Islands', 'Tonga', 'Tuvalu', 'Vanuatu'].some(c => country.includes(c));
+  });
 
   return (
     <group>
-      {/* Other continents - gray filled meshes on the sphere */}
-      {[northAmerica, southAmerica, europe, asia, australia].map((continent, i) => (
-        <React.Fragment key={i}>
-          {/* Gray fill */}
-          {continent.map((coord, j) => {
-            if (j === 0 || j === continent.length - 1) return null;
-            const [long1, lat1] = continent[j - 1];
-            const [long2, lat2] = coord;
-            const [long3, lat3] = continent[j + 1] || continent[0];
-            
-            const toVec = ([lng, lt]) => {
-              const phi = (90 - lt) * (Math.PI / 180);
-              const theta = (lng + 180) * (Math.PI / 180);
-              const r = 5.015;
-              return new THREE.Vector3(
-                -(r * Math.sin(phi) * Math.cos(theta)),
-                r * Math.cos(phi),
-                r * Math.sin(phi) * Math.sin(theta)
-              );
-            };
-            
-            const v1 = toVec([long1, lat1]);
-            const v2 = toVec([long2, lat2]);
-            const v3 = toVec([long3, lat3]);
-            
-            const geom = new THREE.BufferGeometry();
-            geom.setAttribute('position', new THREE.Float32BufferAttribute([
-              v1.x, v1.y, v1.z,
-              v2.x, v2.y, v2.z,
-              v3.x, v3.y, v3.z
-            ], 3));
-            
-            return (
-              <mesh key={`${i}-${j}`} geometry={geom}>
-                <meshStandardMaterial color="#6b6b6b" side={THREE.DoubleSide} opacity={0.7} transparent />
-              </mesh>
-            );
-          })}
-          {/* Outline */}
-          {createContinentLine(continent, '#888888', 0.6, 2)}
-        </React.Fragment>
-      ))}
+      {/* Gray filled continents */}
+      {createFilledContinent(northAmerica, '#6b6b6b', 0.8)}
+      {createFilledContinent(southAmerica, '#6b6b6b', 0.8)}
+      {createFilledContinent(europe, '#6b6b6b', 0.8)}
+      {createFilledContinent(asia, '#6b6b6b', 0.8)}
+      {createFilledContinent(australia, '#6b6b6b', 0.8)}
+      
+      {/* Continent outlines */}
+      {createContinentLine(northAmerica, '#888888', 0.8)}
+      {createContinentLine(southAmerica, '#888888', 0.8)}
+      {createContinentLine(europe, '#888888', 0.8)}
+      {createContinentLine(asia, '#888888', 0.8)}
+      {createContinentLine(australia, '#888888', 0.8)}
       
       {/* Africa - bright green outline, very prominent */}
-      {createContinentLine(africaOutline, '#2ecc71', 1.0, 4)}
-      
-      {/* African country borders - lighter green */}
-      {africanBorders.map((border, i) => 
-        createContinentLine(border, '#52b36a', 0.8, 2)
-      )}
+      {createContinentLine(africaOutline, '#2ecc71', 1.0)}
     </group>
   );
 };
@@ -236,7 +404,13 @@ const EarthSphere = () => {
         />
       </mesh>
       
-      {/* Continent outlines */}
+      {/* Filled countries (subtle background) */}
+      <CountryMeshes />
+      
+      {/* Country borders from real GeoJSON */}
+      <CountryBorders />
+      
+      {/* Regional continent outlines */}
       <ContinentOutlines />
     </>
   );
@@ -245,22 +419,16 @@ const EarthSphere = () => {
 const ImprovedEarth = ({ onCountrySelect, lastInteractionTime }) => {
   const globeRef = useRef();
 
-   const latLongToVector3 = (lat, long, radius = 5) => {
-    const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (long + 180) * (Math.PI / 180);
-    const x = -(radius * Math.sin(phi) * Math.cos(theta));
-    const z = radius * Math.sin(phi) * Math.sin(theta);
-    const y = radius * Math.cos(phi);
-    return [x, y, z];
-  };
-
   // Memoize country markers to avoid recreating them
   const countryMarkers = useMemo(() => 
-    countries.map(c => ({
-      key: c.code,
-      position: latLongToVector3(c.coordinates[1], c.coordinates[0], 5.15),
-      name: c.name
-    })),
+    countries.map(c => {
+      const vec = latLngToVector3(c.coordinates[1], c.coordinates[0], 5.05);
+      return {
+        key: c.code,
+        position: [vec.x, vec.y, vec.z],
+        name: c.name
+      };
+    }),
     []
   );
 

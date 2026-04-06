@@ -6,6 +6,8 @@
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
-    "three": "^0.183.2"
+    "three": "^0.183.2",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
   }
 }
