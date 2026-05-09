@@ -2,6 +2,30 @@ const mockData = {
     Nigeria: {
       "1960": [
         {
+          date: "1960-01-15",
+          name: "Constitutional Conference",
+          shortDescription: "Final steps toward independence",
+          description: "January 1960 saw crucial constitutional conferences preparing Nigeria for independence. These discussions finalized the framework for the new nation.",
+          significance: "These early conferences set the stage for Nigeria's smooth transition to independence just months later.",
+          image: "https://via.placeholder.com/600x400?text=Constitutional+Conference+1960"
+        },
+        {
+          date: "1960-01-15",
+          name: "Political Rallies Begin",
+          shortDescription: "Independence celebrations commence",
+          description: "Citizens and political leaders began organizing rallies and celebrations in anticipation of Nigeria's independence. The excitement and optimism were palpable across the nation.",
+          significance: "These grassroots celebrations demonstrated the widespread support for independence among the Nigerian people.",
+          image: "https://via.placeholder.com/600x400?text=Independence+Rallies+1960"
+        },
+        {
+          date: "1960-01-20",
+          name: "Economic Planning Session",
+          shortDescription: "Post-independence economic strategies discussed",
+          description: "Government officials and economic advisors convened to plan Nigeria's economic future as an independent nation. Focus areas included trade policies, currency management, and development initiatives.",
+          significance: "These early economic discussions would shape Nigeria's fiscal policies in the critical first years of independence.",
+          image: "https://via.placeholder.com/600x400?text=Economic+Planning+1960"
+        },
+        {
           date: "1960-10-01",
           name: "Nigerian Independence",
           shortDescription: "Nigeria gains independence from British rule",

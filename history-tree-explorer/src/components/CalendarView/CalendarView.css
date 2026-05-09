@@ -129,19 +129,23 @@
 
 /* Historical Calendar */
 .historical-calendar {
-  background: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, rgba(20, 45, 80, 0.4) 0%, rgba(10, 25, 41, 0.25) 50%, rgba(5, 15, 30, 0.4) 100%);
   padding: 8px;
   border-radius: 8px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .weekday-headers {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-  margin-bottom: 3px;
+  grid-template-columns: repeat(7, 80px);
+  gap: 4px;
+  margin-bottom: 8px;
+  justify-content: center;
 }
 
 .weekday-header {
@@ -154,20 +158,24 @@
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  grid-template-columns: repeat(7, 80px);
+  gap: 4px;
+  justify-content: center;
 }
 
 .calendar-day {
-  aspect-ratio: 1;
+  width: 80px; height: 80px;
+  /*aspect-ratio: 0.9;8? revert to aspect ratio if big ass calender is preferred */ 
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 3px;
-  padding: 2px;
+  padding: 0px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   position: relative;
   overflow: hidden;
 }
@@ -202,17 +210,18 @@
 
 .day-number {
   font-weight: 600;
-  font-size: 0.5em;
-  margin-bottom: 1px;
+  font-size: 1em;
+  margin-bottom: 0px;
   line-height: 1;
 }
 
 .day-preview {
-  font-size: 0.4em;
+  font-size: 0.5em;
   opacity: 0.85;
-  display: flex;
+  display: none;
   flex-direction: column;
-  gap: 0px;
+  gap: 2px;
+  margin-top: 2px;
 }
 
 .event-count {
@@ -231,6 +240,7 @@
 
 /* Day Events List */
 .day-events-list {
+  display: none;
   background: rgba(255, 255, 255, 0.08);
   padding: 8px;
   border-radius: 8px;

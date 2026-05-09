@@ -16,7 +16,7 @@ const DetailContainer = styled.div`
 `;
 
 const DetailCard = styled.div`
-  background-color: white;
+  background-color: #2C5AA0;
   width: 80%;
   max-width: 800px;
   max-height: 90vh;
@@ -24,6 +24,7 @@ const DetailCard = styled.div`
   overflow: auto;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   padding: 30px;
+  color: white;
 `;
 
 const DetailHeader = styled.div`
@@ -38,10 +39,10 @@ const CloseButton = styled.button`
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #555;
+  color: white;
   
   &:hover {
-    color: #000;
+    color: rgba(255, 255, 255, 0.8);
   }
 `;
 
@@ -58,33 +59,51 @@ const EventImage = styled.img`
 `;
 
 const DetailView = ({ event, year, onClose }) => {
+  const [imageError, setImageError] = React.useState(false);
+
   if (!event) return null;
+
+  // Format date from YYYY-MM-DD
+  const dateObj = new Date(event.date);
+
+  const formattedDate = dateObj.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 
   return (
     <DetailContainer onClick={onClose}>
       <DetailCard onClick={(e) => e.stopPropagation()}>
         <DetailHeader>
           <div>
+            <h3>{formattedDate}</h3>
             <h2>{event.name}</h2>
-            <h3>{year}</h3>
           </div>
+
           <CloseButton onClick={onClose}>×</CloseButton>
         </DetailHeader>
-        
-        <ImageContainer>
-          <EventImage src={event.image} alt={event.name} />
-        </ImageContainer>
-        
-        <div className="event-description">
-          <p>{event.description}</p>
-        </div>
-        
+
+        {event.image && !imageError && (
+          <ImageContainer>
+            <EventImage
+              src={event.image}
+              alt={event.name}
+              onError={() => setImageError(true)}
+            />
+          </ImageContainer>
+        )}
+
         {event.significance && (
           <div className="event-significance">
             <h4>Historical Significance</h4>
             <p>{event.significance}</p>
           </div>
         )}
+
+        <div className="event-description">
+          <p>{event.description}</p>
+        </div>
       </DetailCard>
     </DetailContainer>
   );

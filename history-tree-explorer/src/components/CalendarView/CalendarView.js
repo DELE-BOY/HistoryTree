@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import YearSelector from './YearSelector';
 import MonthSelector from './MonthSelector';
 import HistoricalCalendar from './HistoricalCalendar';
-import DayEventsList from './DayEventsList';
+import DateEventsModal from './DateEventsModal';
 import './CalendarView.css';
 
 const CalendarView = ({ country, data, onBack }) => {
@@ -14,6 +14,7 @@ const CalendarView = ({ country, data, onBack }) => {
 
   const [selectedMonth, setSelectedMonth] = useState(0); // 0-11
   const [selectedDay, setSelectedDay] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Flatten all events into a date map for quick lookup
   const eventsByDate = useMemo(() => {
@@ -43,6 +44,18 @@ const CalendarView = ({ country, data, onBack }) => {
 
   const selectedDayEvents = selectedDateString ? getEventsForDate(selectedDateString) : [];
 
+  const handleDaySelect = (day) => {
+    setSelectedDay(day);
+    const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    if (eventsByDate[dateStr] && eventsByDate[dateStr].length > 0) {
+      setShowModal(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
   return (
     <div className="calendar-view">
       <button className="back-button" onClick={onBack}>← Back to Globe</button>
@@ -67,17 +80,17 @@ const CalendarView = ({ country, data, onBack }) => {
             year={selectedYear}
             month={selectedMonth}
             selectedDay={selectedDay}
-            onDaySelect={setSelectedDay}
+            onDaySelect={handleDaySelect}
             eventsByDate={eventsByDate}
           />
         </div>
       </div>
 
-      {selectedDayEvents.length > 0 && (
-        <DayEventsList 
+      {showModal && selectedDateString && selectedDayEvents.length > 0 && (
+        <DateEventsModal 
           events={selectedDayEvents}
           date={selectedDateString}
-          day={selectedDay}
+          onClose={handleCloseModal}
         />
       )}
     </div>
