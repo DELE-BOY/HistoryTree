@@ -2,6 +2,7 @@ const mockData = {
     Nigeria: {
       "1960": [
         {
+          date: "1960-10-01",
           name: "Nigerian Independence",
           shortDescription: "Nigeria gains independence from British rule",
           description: "On October 1, 1960, Nigeria gained independence from British colonial rule. The event marked the birth of Africa's most populous nation as a sovereign state after decades of British control.",
@@ -9,6 +10,7 @@ const mockData = {
           image: "https://via.placeholder.com/600x400?text=Nigerian+Independence+1960"
         },
         {
+          date: "1960-10-01",
           name: "Abubakar Tafawa Balewa",
           shortDescription: "First Prime Minister of independent Nigeria",
           description: "Abubakar Tafawa Balewa became the first Prime Minister of independent Nigeria in 1960. He was a respected leader known for his moderation and commitment to unity.",
@@ -18,6 +20,7 @@ const mockData = {
       ],
       "1963": [
         {
+          date: "1963-10-01",
           name: "Nigerian Republic",
           shortDescription: "Nigeria becomes a republic",
           description: "On October 1, 1963, Nigeria became a republic, replacing the British monarch as head of state with a Nigerian president. This completed the process of independence from British rule.",
@@ -27,6 +30,7 @@ const mockData = {
       ],
       "1967": [
         {
+          date: "1967-07-06",
           name: "Nigerian Civil War Begins",
           shortDescription: "Start of the Biafran War",
           description: "In July 1967, the Nigerian Civil War (also known as the Biafran War) began when the southeastern provinces attempted to secede and form the Republic of Biafra.",
@@ -36,6 +40,7 @@ const mockData = {
       ],
       "1970": [
         {
+          date: "1970-01-15",
           name: "End of Civil War",
           shortDescription: "Biafra surrenders, civil war ends",
           description: "On January 15, 1970, the Nigerian Civil War ended with the surrender of Biafran forces. This brought the three-year conflict to a close and resulted in the reintegration of the southeastern regions.",
@@ -47,6 +52,7 @@ const mockData = {
     "United States": {
       "1776": [
         {
+          date: "1776-07-04",
           name: "Declaration of Independence",
           shortDescription: "US declares independence from Great Britain",
           description: "On July 4, 1776, the Continental Congress adopted the Declaration of Independence, announcing the colonies' separation from Great Britain.",
@@ -56,6 +62,7 @@ const mockData = {
       ],
       "1865": [
         {
+          date: "1865-04-09",
           name: "End of Civil War",
           shortDescription: "Confederate surrender at Appomattox",
           description: "On April 9, 1865, Confederate General Robert E. Lee surrendered to Union General Ulysses S. Grant at Appomattox Court House, effectively ending the American Civil War.",
@@ -65,6 +72,7 @@ const mockData = {
       ],
       "1969": [
         {
+          date: "1969-07-20",
           name: "Moon Landing",
           shortDescription: "First humans walk on the moon",
           description: "On July 20, 1969, American astronauts Neil Armstrong and Buzz Aldrin became the first humans to walk on the moon as part of NASA's Apollo 11 mission.",
