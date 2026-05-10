@@ -90,6 +90,7 @@ const CalendarView = ({ country, data, onBack }) => {
         <DateEventsModal 
           events={selectedDayEvents}
           date={selectedDateString}
+          country={country}
           onClose={handleCloseModal}
         />
       )}

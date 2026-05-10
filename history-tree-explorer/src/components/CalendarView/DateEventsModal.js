@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import DetailView from '../DetailView/DetailView';
+import SubmissionForm from './SubmissionForm';
 import './DateEventsModal.css';
 
-const DateEventsModal = ({ events, date, onClose }) => {
+const DateEventsModal = ({ events, date, onClose, country }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showSubmissionForm, setShowSubmissionForm] = useState(false);
 
   const dateObj = new Date(date);
   const formattedDate = dateObj.toLocaleDateString('en-US', {
@@ -17,10 +19,6 @@ const DateEventsModal = ({ events, date, onClose }) => {
     setSelectedEvent(event);
   };
 
-  const handleCloseDetail = () => {
-    setSelectedEvent(null);
-  };
-
   const handleBackToList = () => {
     setSelectedEvent(null);
   };
@@ -32,6 +30,17 @@ const DateEventsModal = ({ events, date, onClose }) => {
         event={selectedEvent}
         year={date.split('-')[0]}
         onClose={handleBackToList}
+      />
+    );
+  }
+
+  // If submission form is shown
+  if (showSubmissionForm) {
+    return (
+      <SubmissionForm 
+        selectedDate={date}
+        country={country}
+        onClose={() => setShowSubmissionForm(false)}
       />
     );
   }
@@ -56,6 +65,15 @@ const DateEventsModal = ({ events, date, onClose }) => {
               <span className="event-click-hint">Click to view details</span>
             </div>
           ))}
+        </div>
+
+        <div className="modal-footer">
+          <button 
+            className="modal-submit-btn"
+            onClick={() => setShowSubmissionForm(true)}
+          >
+            + Submit Entry for This Date
+          </button>
         </div>
       </div>
     </div>
