@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import DetailView from '../DetailView/DetailView';
 import SubmissionForm from './SubmissionForm';
 import ExplorationPanel from './ExplorationPanel';
+import RandomJourneyModal from './RandomJourneyModal';
 import './DateEventsModal.css';
 
 const DateEventsModal = ({ events, date, onClose, country }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const [showExploration, setShowExploration] = useState(false);
+  const [showRandomJourney, setShowRandomJourney] = useState(false);
 
   const dateObj = new Date(date);
   const formattedDate = dateObj.toLocaleDateString('en-US', {
@@ -58,6 +60,17 @@ const DateEventsModal = ({ events, date, onClose, country }) => {
     );
   }
 
+  // If random journey modal should be shown
+  if (showRandomJourney) {
+    return (
+      <RandomJourneyModal 
+        country={country}
+        date={date}
+        onClose={() => setShowRandomJourney(false)}
+      />
+    );
+  }
+
   return (
     <div className="date-events-modal-overlay" onClick={onClose}>
       <div className="date-events-modal" onClick={(e) => e.stopPropagation()}>
@@ -97,7 +110,7 @@ const DateEventsModal = ({ events, date, onClose, country }) => {
             </button>
             <button 
               className="modal-action-btn random-btn"
-              onClick={() => setShowExploration(true)}
+              onClick={() => setShowRandomJourney(true)}
             >
               🎲 Random Journey
             </button>

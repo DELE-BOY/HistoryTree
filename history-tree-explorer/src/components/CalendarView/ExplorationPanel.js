@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import RegionalExplorer from './RegionalExplorer';
 import HistoricalFigures from './HistoricalFigures';
-import RandomJourney from './RandomJourney';
 import TriviaMode from './TriviaMode';
 import TimelineMode from './TimelineMode';
 import './ExplorationPanel.css';
@@ -36,21 +35,14 @@ const ExplorationPanel = ({ country, date, onClose }) => {
             onClick={() => setActiveMode('regions')}
           >
             <span className="nav-icon">🏘️</span>
-            <span className="nav-label">Regions</span>
+            <span className="nav-label">Regions/States</span>
           </button>
           <button 
             className={`nav-item ${activeMode === 'figures' ? 'active' : ''}`}
             onClick={() => setActiveMode('figures')}
           >
             <span className="nav-icon">👥</span>
-            <span className="nav-label">Figures</span>
-          </button>
-          <button 
-            className={`nav-item ${activeMode === 'random' ? 'active' : ''}`}
-            onClick={() => setActiveMode('random')}
-          >
-            <span className="nav-icon">🎲</span>
-            <span className="nav-label">Random</span>
+            <span className="nav-label">Significant Figures</span>
           </button>
           <button 
             className={`nav-item ${activeMode === 'trivia' ? 'active' : ''}`}
@@ -76,10 +68,6 @@ const ExplorationPanel = ({ country, date, onClose }) => {
           
           {activeMode === 'figures' && (
             <HistoricalFigures country={country} />
-          )}
-          
-          {activeMode === 'random' && (
-            <RandomJourney country={country} />
           )}
           
           {activeMode === 'trivia' && (
