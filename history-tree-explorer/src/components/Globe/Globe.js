@@ -9,24 +9,6 @@ import './Globe.css';
 // Load and convert world data from TopoJSON to GeoJSON
 const worldFeatures = feature(worldData, worldData.objects.countries);
 
-// Helper function to extract coordinates from GeoJSON feature
-const extractCoordinates = (geometry) => {
-  if (!geometry || !geometry.coordinates) return [];
-  
-  if (geometry.type === 'Polygon') {
-    return geometry.coordinates[0];
-  } else if (geometry.type === 'MultiPolygon') {
-    let largestRing = [];
-    geometry.coordinates.forEach(polygon => {
-      if (polygon[0].length > largestRing.length) {
-        largestRing = polygon[0];
-      }
-    });
-    return largestRing;
-  }
-  return [];
-};
-
 // Convert longitude/latitude to 3D sphere vector
 const latLngToVector3 = (lon, lat, radius = 5) => {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -36,9 +18,6 @@ const latLngToVector3 = (lon, lat, radius = 5) => {
   const z = radius * Math.sin(phi) * Math.sin(theta);
   return new THREE.Vector3(x, y, z);
 };
-
-// African country codes
-const AFRICAN_COUNTRY_CODES = ['DZ', 'AO', 'BJ', 'BW', 'BF', 'BI', 'CM', 'CV', 'CF', 'TD', 'KM', 'CG', 'CD', 'DJ', 'EG', 'GQ', 'ER', 'SZ', 'ET', 'GA', 'GM', 'GH', 'GN', 'GW', 'CI', 'KE', 'LS', 'LR', 'LY', 'MG', 'MW', 'ML', 'MR', 'MU', 'MA', 'MZ', 'NA', 'NE', 'NG', 'RW', 'SN', 'SC', 'SL', 'SO', 'ZA', 'SS', 'SD', 'TZ', 'TG', 'TN', 'UG', 'ZM', 'ZW'];
 
 const AFRICAN_COUNTRY_NAMES = {
   'DZ': 'Algeria', 'AO': 'Angola', 'BJ': 'Benin', 'BW': 'Botswana', 'BF': 'Burkina Faso', 'BI': 'Burundi',

@@ -6,6 +6,7 @@ import './DateEventsModal.css';
 const DateEventsModal = ({ events, date, onClose, country }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
+  const [showExploration, setShowExploration] = useState(false);
 
   const dateObj = new Date(date);
   const formattedDate = dateObj.toLocaleDateString('en-US', {
@@ -45,6 +46,24 @@ const DateEventsModal = ({ events, date, onClose, country }) => {
     );
   }
 
+  // If exploration panel should be shown
+  if (showExploration) {
+    // TODO: Replace with ExplorationPanel component once created
+    return (
+      <div className="date-events-modal-overlay" onClick={onClose}>
+        <div className="date-events-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>🌍 Historical Exploration</h2>
+            <button className="modal-close-btn" onClick={() => setShowExploration(false)}>✕</button>
+          </div>
+          <div style={{ padding: '20px', color: '#fff', textAlign: 'center' }}>
+            <p>Exploration Panel Coming Soon...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="date-events-modal-overlay" onClick={onClose}>
       <div className="date-events-modal" onClick={(e) => e.stopPropagation()}>
@@ -74,6 +93,21 @@ const DateEventsModal = ({ events, date, onClose, country }) => {
           >
             + Submit Entry for This Date
           </button>
+          
+          <div className="modal-action-buttons">
+            <button 
+              className="modal-action-btn explore-btn"
+              onClick={() => setShowExploration(true)}
+            >
+              🌍 Explore
+            </button>
+            <button 
+              className="modal-action-btn random-btn"
+              onClick={() => setShowExploration(true)}
+            >
+              🎲 Random Journey
+            </button>
+          </div>
         </div>
       </div>
     </div>

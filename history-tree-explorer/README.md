@@ -88,3 +88,8 @@ src/
 ├── App.js
 ├── App.css
 └── index.js
+
+Event scale future options
+Scales well later if you add:
+
+Icon carousel at bottom

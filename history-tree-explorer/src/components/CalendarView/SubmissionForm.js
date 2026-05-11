@@ -10,6 +10,7 @@ const SubmissionForm = ({ selectedDate, country, onClose }) => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -24,6 +25,7 @@ const SubmissionForm = ({ selectedDate, country, onClose }) => {
     
     if (!formData.topic || !formData.description || !formData.significance) {
       setMessage('Please fill in all required fields');
+      setIsError(true);
       return;
     }
 
@@ -50,6 +52,7 @@ const SubmissionForm = ({ selectedDate, country, onClose }) => {
 
       if (response.ok) {
         setMessage('✓ Submission sent successfully! Thank you for your contribution.');
+        setIsError(false);
         setFormData({
           topic: '',
           description: '',
@@ -58,10 +61,12 @@ const SubmissionForm = ({ selectedDate, country, onClose }) => {
         });
         setTimeout(() => onClose(), 2000);
       } else {
-        setMessage(`Error: ${result.message || 'Failed to submit entry'}`);
+        setMessage('This service is unavailable. Please try again later.');
+        setIsError(true);
       }
     } catch (error) {
-      setMessage(`Error: ${error.message}`);
+      setMessage('This service is unavailable. Please try again later.');
+      setIsError(true);
     } finally {
       setLoading(false);
     }
@@ -145,7 +150,7 @@ const SubmissionForm = ({ selectedDate, country, onClose }) => {
           </div>
 
           {message && (
-            <div className={`form-message ${message.includes('Error') ? 'error' : 'success'}`}>
+            <div className={`form-message ${isError ? 'error' : 'success'}`}>
               {message}
             </div>
           )}
