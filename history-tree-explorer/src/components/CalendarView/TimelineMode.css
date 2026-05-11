@@ -1,0 +1,336 @@
+/* TIMELINE MODE CONTAINER */
+.timeline-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeInStagger 0.5s ease both;
+}
+
+@keyframes fadeInStagger {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.timeline-title {
+  margin: 0 0 4px 0;
+  font-size: 1.1em;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.timeline-subtitle {
+  margin: 0;
+  font-size: 0.8em;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+/* TIMELINES CONTAINER */
+.timelines-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* REGION TIMELINE */
+.region-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.timeline-region-name {
+  margin: 0;
+  font-size: 0.95em;
+  color: rgba(76, 175, 80, 0.95);
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+/* TIMELINE EVENTS */
+.timeline-events {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.timeline-events::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(76, 175, 80, 0.4), rgba(76, 175, 80, 0.1));
+}
+
+/* INDIVIDUAL EVENT */
+.timeline-event {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  padding-left: 40px;
+  position: relative;
+  animation: slideInTimeline 0.5s ease both;
+}
+
+@keyframes slideInTimeline {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.timeline-event:nth-child(1) { animation-delay: 0.1s; }
+.timeline-event:nth-child(2) { animation-delay: 0.15s; }
+.timeline-event:nth-child(3) { animation-delay: 0.2s; }
+.timeline-event:nth-child(4) { animation-delay: 0.25s; }
+
+/* EVENT MARKER */
+.event-marker {
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 24px;
+  height: 24px;
+  background: rgba(76, 175, 80, 0.2);
+  border: 2px solid rgba(76, 175, 80, 0.6);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.timeline-event.theme-independence .event-marker {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.8);
+}
+
+.timeline-event.theme-conflict .event-marker {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: rgba(244, 67, 54, 0.8);
+}
+
+.timeline-event.theme-economic .event-marker {
+  background: rgba(52, 168, 224, 0.2);
+  border-color: rgba(52, 168, 224, 0.8);
+}
+
+.timeline-event.theme-culture .event-marker {
+  background: rgba(156, 39, 176, 0.2);
+  border-color: rgba(156, 39, 176, 0.8);
+}
+
+.timeline-event.theme-development .event-marker {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: rgba(76, 175, 80, 0.8);
+}
+
+/* EVENT CONTENT */
+.event-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex: 1;
+}
+
+.timeline-event:hover .event-content {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.event-year {
+  font-size: 0.75em;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.event-title {
+  margin: 0;
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+.event-description {
+  margin: 0;
+  font-size: 0.8em;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+  font-family: Georgia, serif;
+}
+
+/* THEME COLORS */
+.timeline-event.theme-governance .event-title {
+  color: rgba(76, 175, 80, 0.95);
+}
+
+.timeline-event.theme-independence .event-title {
+  color: rgba(255, 193, 7, 0.95);
+}
+
+.timeline-event.theme-conflict .event-title {
+  color: rgba(244, 67, 54, 0.95);
+}
+
+.timeline-event.theme-economic .event-title {
+  color: rgba(52, 168, 224, 0.95);
+}
+
+.timeline-event.theme-culture .event-title {
+  color: rgba(156, 39, 176, 0.95);
+}
+
+.timeline-event.theme-development .event-title {
+  color: rgba(76, 175, 80, 0.95);
+}
+
+.timeline-event.theme-recovery .event-title {
+  color: rgba(52, 168, 224, 0.95);
+}
+
+.timeline-event.theme-unity .event-title {
+  color: rgba(76, 175, 80, 0.95);
+}
+
+.timeline-event.theme-agriculture .event-title {
+  color: rgba(139, 195, 74, 0.95);
+}
+
+/* LEGEND */
+.timeline-legend {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.legend-title {
+  margin: 0;
+  font-size: 0.75em;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.legend-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-item.governance .legend-dot {
+  background: rgba(76, 175, 80, 0.8);
+}
+
+.legend-item.independence .legend-dot {
+  background: rgba(255, 193, 7, 0.8);
+}
+
+.legend-item.conflict .legend-dot {
+  background: rgba(244, 67, 54, 0.8);
+}
+
+.legend-item.economic .legend-dot {
+  background: rgba(52, 168, 224, 0.8);
+}
+
+/* MOBILE RESPONSIVENESS */
+@media (max-width: 768px) {
+  .timelines-container {
+    gap: 16px;
+  }
+
+  .timeline-event {
+    padding: 10px;
+    padding-left: 35px;
+  }
+
+  .event-marker {
+    width: 20px;
+    height: 20px;
+    top: 12px;
+  }
+
+  .event-title {
+    font-size: 0.85em;
+  }
+
+  .event-description {
+    font-size: 0.75em;
+  }
+}
+
+@media (max-width: 480px) {
+  .timeline-region-name {
+    font-size: 0.9em;
+  }
+
+  .timeline-events::before {
+    left: 9px;
+  }
+
+  .timeline-event {
+    padding: 8px;
+    padding-left: 30px;
+  }
+
+  .event-marker {
+    width: 18px;
+    height: 18px;
+    top: 10px;
+    left: 0;
+  }
+
+  .event-year {
+    font-size: 0.7em;
+  }
+
+  .event-title {
+    font-size: 0.8em;
+  }
+
+  .event-description {
+    font-size: 0.7em;
+  }
+
+  .legend-items {
+    grid-template-columns: 1fr;
+  }
+}

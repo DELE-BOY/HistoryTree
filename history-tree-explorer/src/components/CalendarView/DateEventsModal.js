@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DetailView from '../DetailView/DetailView';
 import SubmissionForm from './SubmissionForm';
+import ExplorationPanel from './ExplorationPanel';
 import './DateEventsModal.css';
 
 const DateEventsModal = ({ events, date, onClose, country }) => {
@@ -48,19 +49,12 @@ const DateEventsModal = ({ events, date, onClose, country }) => {
 
   // If exploration panel should be shown
   if (showExploration) {
-    // TODO: Replace with ExplorationPanel component once created
     return (
-      <div className="date-events-modal-overlay" onClick={onClose}>
-        <div className="date-events-modal" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2>🌍 Historical Exploration</h2>
-            <button className="modal-close-btn" onClick={() => setShowExploration(false)}>✕</button>
-          </div>
-          <div style={{ padding: '20px', color: '#fff', textAlign: 'center' }}>
-            <p>Exploration Panel Coming Soon...</p>
-          </div>
-        </div>
-      </div>
+      <ExplorationPanel 
+        country={country}
+        date={date}
+        onClose={() => setShowExploration(false)}
+      />
     );
   }
 
