@@ -59,7 +59,7 @@ const RandomJourneyModal = ({ country, date, onClose }) => {
         {/* Header */}
         <div className="random-modal-header">
           <div className="random-modal-header-content">
-            <h2>🎲 Random Historical Journey</h2>
+            <h2>🎲 Randomize</h2>
             <p className="random-modal-context">{country} • {formattedDate}</p>
           </div>
           <button className="random-modal-close-btn" onClick={onClose}>✕</button>
@@ -69,9 +69,9 @@ const RandomJourneyModal = ({ country, date, onClose }) => {
         <div className="random-modal-content">
           {!journey ? (
             <div className="random-empty">
-              <p className="random-empty-text">Start a random historical journey!</p>
+              <p className="random-empty-text">Start a random discovery!</p>
               <button className="random-start-btn" onClick={generateRandomJourney}>
-                🎲 Generate Journey
+                🎲 Randomize
               </button>
             </div>
           ) : (
@@ -99,14 +99,14 @@ const RandomJourneyModal = ({ country, date, onClose }) => {
 
               <div className="random-actions">
                 <button className="random-action-btn regen-btn" onClick={generateRandomJourney}>
-                  🔄 Generate Another
+                  🎲 Randomize Again
                 </button>
                 <button 
                   className="random-action-btn share-btn" 
                   onClick={() => {
-                    const text = `Random Historical Journey:\nRegion: ${journey.region.name}\nFigure: ${journey.figure.name}\nTheme: ${formatTheme(journey.theme)}\nPrompt: "${journey.prompt}"`;
+                    const text = `Random Discovery:\nRegion: ${journey.region.name}\nFigure: ${journey.figure.name}\nTheme: ${formatTheme(journey.theme)}\nPrompt: "${journey.prompt}"`;
                     navigator.clipboard.writeText(text);
-                    alert('Journey copied to clipboard!');
+                    alert('Discovery copied to clipboard!');
                   }}
                 >
                   📋 Copy

@@ -94,13 +94,6 @@ const DateEventsModal = ({ events, date, onClose, country }) => {
         </div>
 
         <div className="modal-footer">
-          <button 
-            className="modal-submit-btn"
-            onClick={() => setShowSubmissionForm(true)}
-          >
-            + Submit Entry for This Date
-          </button>
-          
           <div className="modal-action-buttons">
             <button 
               className="modal-action-btn explore-btn"
@@ -109,12 +102,19 @@ const DateEventsModal = ({ events, date, onClose, country }) => {
               🌍 Explore
             </button>
             <button 
-              className="modal-action-btn random-btn"
+              className="modal-action-btn randomize-btn"
               onClick={() => setShowRandomJourney(true)}
             >
-              🎲 Random Journey
+              🎲 Randomize
             </button>
           </div>
+          
+          <button 
+            className="modal-submit-btn"
+            onClick={() => setShowSubmissionForm(true)}
+          >
+            + Submit Entry for This Date
+          </button>
         </div>
       </div>
     </div>
